@@ -1,6 +1,6 @@
 {
     "gerado_em": "2026-09-22",
-    "total_relatos": 2031,
+    "total_relatos": 2030,
     "relatos": [
         {
             "id": "r0001",
@@ -27608,23 +27608,6 @@
             "lat": -1.66,
             "lon": -48.85,
             "precisao": "local",
-            "observacao": null
-        },
-        {
-            "id": "r2031",
-            "categoria": "Reptiliano",
-            "rotulo": "Reptiliano",
-            "nome_relatado": "TIBÚRCIO",
-            "video_url": "ccccccccccccc",
-            "titulo": "vvvvvvvvvvvvvvvv",
-            "minuto": "—",
-            "link_minuto": "ccccccccccccc",
-            "trecho": "nada",
-            "baixa_confianca": false,
-            "local": "Porto Alegre",
-            "lat": -30.033,
-            "lon": -51.23,
-            "precisao": "manual",
             "observacao": null
         }
     ],
