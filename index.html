@@ -200,17 +200,22 @@
   @media (prefers-reduced-motion: reduce){ #loading .glyph{ animation:none; } }
 
   @media (max-width: 760px){
-    #topbar{ right:10px; top:calc(10px + env(safe-area-inset-top,0px)); left:auto; }
-    #search{ width:46vw; }
+    /* painel em cima, busca numa segunda linha por baixo — evita os dois disputarem a mesma faixa */
     #panel{
-      left:10px; top:calc(10px + env(safe-area-inset-top,0px)); width:min(68vw, 300px);
-      max-height:calc(100vh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+      left:10px; right:10px; top:calc(10px + env(safe-area-inset-top,0px)); width:auto;
+      max-height:calc(100vh - 66px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
     }
     #panelHeader{ padding:9px 36px 9px 12px; }
     #panelHeader h1{ font-size:.9rem; }
     #panelHeader p{ display:none; }
     #pinBtn{ right:30px; top:7px; }
     #chev{ top:10px; }
+    #topbar{
+      left:10px; right:10px; justify-content:stretch;
+      top:calc(56px + env(safe-area-inset-top,0px));
+    }
+    #searchWrap{ flex:1; }
+    #search{ width:100%; }
   }
 </style>
 </head>
@@ -230,8 +235,8 @@
   <button id="panelHeader" aria-expanded="true" aria-controls="panelBody">
     <span class="glyph">🌙</span>
     <div class="titleBlock">
-      <h1>Mapa de Arrepiar <span class="ver">v9.1</span></h1>
-      <p>Aparições relatadas no canal Belém de Arrepiar</p>
+      <h1>Mapa de Arrepiar <span class="ver">v9.3</span></h1>
+      <p>Canal Belém de Arrepiar</p>
     </div>
   </button>
   <button id="pinBtn" aria-label="Fixar painel aberto" aria-pressed="false" title="Fixar painel aberto (não fecha ao clicar no mapa)">
