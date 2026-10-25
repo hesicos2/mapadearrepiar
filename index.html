@@ -14,17 +14,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css">
 <style>
   :root{
-    --bg:#0E1B16;
-    --panel:#152420;
-    --panel-2:#1B2C26;
-    --border:#2A3B33;
-    --fg:#EDE7DA;
-    --fg-muted:#9FB0A6;
-    --accent:#E8A33D;
-    --accent-2:#F2B95C;
+    --bg:#EAF2E4;
+    --panel:#F6FAF3;
+    --panel-2:#E4EFDB;
+    --border:#C6DBBC;
+    --fg:#2C3B28;
+    --fg-muted:#637759;
+    --accent:#D98C2D;
+    --accent-2:#F0B65A;
     --danger:#C0553A;
     --radius:14px;
-    --shadow:0 12px 30px rgba(0,0,0,.45);
+    --shadow:0 10px 26px rgba(43,58,39,.16);
   }
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;}
@@ -41,8 +41,8 @@
     position:fixed; inset:0;
     padding-top:env(safe-area-inset-top,0px);
   }
-  .leaflet-container{ background:#0A1512; }
-  .leaflet-control-attribution{ background:rgba(10,18,15,.75) !important; color:var(--fg-muted) !important; font-size:10.5px; }
+  .leaflet-container{ background:var(--bg); }
+  .leaflet-control-attribution{ background:rgba(246,250,243,.85) !important; color:var(--fg-muted) !important; font-size:10.5px; }
   .leaflet-control-attribution a{ color:var(--fg-muted) !important; }
   .leaflet-control-zoom a{
     background:var(--panel) !important; color:var(--fg) !important; border-color:var(--border) !important;
@@ -52,7 +52,7 @@
   /* ---- Topbar ---- */
   #topbar{
     position:fixed; top:calc(16px + env(safe-area-inset-top,0px)); left:16px; right:16px;
-    z-index:1000; display:flex; gap:10px; align-items:flex-start; justify-content:flex-end; pointer-events:none;
+    z-index:1000; display:flex; gap:10px; align-items:center; justify-content:flex-end; pointer-events:none;
   }
   #searchWrap{ pointer-events:auto; display:flex; justify-content:flex-end; gap:8px; }
   #search{
@@ -129,6 +129,119 @@
   #legend span{ display:flex; align-items:center; gap:5px; font-size:.68rem; color:var(--fg-muted); }
   #legend i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
 
+  /* ---- botão flutuante de estatísticas ---- */
+  #statsFloatBtn{
+    pointer-events:auto; flex:none; width:46px; height:46px; border-radius:50%; cursor:pointer;
+    background:linear-gradient(155deg, var(--accent-2), var(--accent)); color:#1A1208;
+    border:2px solid rgba(255,255,255,.65);
+    box-shadow:var(--shadow), 0 0 0 4px rgba(217,140,45,.18);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  #statsFloatBtn svg{ width:22px; height:22px; }
+  #statsFloatBtn:hover{ transform:translateY(-2px); box-shadow:var(--shadow), 0 0 0 6px rgba(217,140,45,.24); }
+  #statsFloatBtn:disabled{ opacity:.45; cursor:default; transform:none; box-shadow:var(--shadow); }
+
+  /* ---- modal de estatísticas ---- */
+  .statsOverlay{
+    position:fixed; inset:0; z-index:3000; background:rgba(26,36,22,.42);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    backdrop-filter:blur(1.5px);
+  }
+  .statsOverlay[hidden]{ display:none; }
+  .statsModal{
+    position:relative; width:min(480px,100%); max-height:min(84vh,680px);
+    background:linear-gradient(165deg, var(--panel), var(--panel-2) 140%);
+    border:1px solid var(--border); border-radius:18px; box-shadow:0 20px 48px rgba(43,58,39,.28);
+    padding:22px 22px 20px; overflow-y:auto;
+  }
+  .statsModal::before{
+    content:''; position:absolute; left:0; top:0; right:0; height:5px; border-radius:18px 18px 0 0;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2), #8FB07A);
+  }
+  .statsModal h2{
+    margin:4px 0 16px; font-size:1.2rem; font-weight:700; padding-right:28px; color:var(--fg);
+    font-family:'Fraunces',serif; display:flex; align-items:center; gap:9px;
+  }
+  .catDot{ width:16px; height:16px; border-radius:50%; flex:none; box-shadow:0 0 0 2px rgba(255,255,255,.5); }
+  .catLink{
+    background:none; border:none; font:inherit; color:inherit; text-align:left; padding:0; cursor:pointer;
+  }
+  .catLink:hover{ color:var(--accent); text-decoration:underline; }
+  .statsClose{
+    position:absolute; top:16px; right:16px; background:var(--panel-2); border:1px solid var(--border);
+    color:var(--fg-muted); width:26px; height:26px; border-radius:50%;
+    font-size:.85rem; cursor:pointer; line-height:1; padding:0; display:flex; align-items:center; justify-content:center;
+  }
+  .statsClose:hover{ color:var(--fg); border-color:var(--accent); }
+  .statsSection{ margin-bottom:20px; }
+  .statsSection:last-child{ margin-bottom:0; }
+  .statsSection h3{
+    font-size:.76rem; text-transform:uppercase; letter-spacing:.06em; color:var(--accent);
+    margin:0 0 10px; font-weight:700;
+  }
+  .statsSecHead{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .statsSecHead h3{ margin:0; }
+  .chartToggle{ display:flex; background:var(--panel-2); border:1px solid var(--border); border-radius:999px; padding:2px; gap:2px; }
+  .toggleBtn{
+    border:none; background:none; color:var(--fg-muted); font-size:.7rem; font-weight:700; padding:5px 12px;
+    border-radius:999px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .toggleBtn.active{ background:var(--accent); color:#1A1208; }
+
+  .statsList{ list-style:none; margin:0; padding:0; }
+  .statsList li{ display:flex; align-items:center; gap:9px; padding:6px 0; font-size:.83rem; }
+  .statsList .rank{ width:24px; flex:none; text-align:center; font-size:.9rem; color:var(--fg-muted); font-variant-numeric:tabular-nums; }
+  .statsList .name{
+    width:118px; flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;
+    background:none; border:none; font-family:'Inter',sans-serif; font-size:inherit; color:var(--fg);
+    text-align:left; padding:0; cursor:pointer;
+  }
+  .statsList button.name:hover{ color:var(--accent); text-decoration:underline; }
+  .statsList .track{ flex:1; background:var(--panel-2); border-radius:6px; height:11px; overflow:hidden; border:1px solid var(--border); }
+  .statsList .fill{ display:block; height:100%; border-radius:6px 0 0 6px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .statsList .n{ width:32px; flex:none; text-align:right; color:var(--accent); font-weight:700; font-variant-numeric:tabular-nums; font-size:.78rem; }
+  .moreBtn{
+    display:block; margin:8px auto 0; background:none; border:1px dashed var(--border); color:var(--accent);
+    font-size:.72rem; font-weight:600; padding:6px 16px; border-radius:999px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .moreBtn:hover{ background:var(--panel-2); border-style:solid; border-color:var(--accent); }
+
+  .statsPage[hidden]{ display:none; }
+  .backBtn{
+    background:none; border:none; color:var(--accent); font-weight:600; font-size:.78rem; cursor:pointer;
+    padding:0 0 10px; font-family:'Inter',sans-serif;
+  }
+  .backBtn:hover{ text-decoration:underline; }
+  .localTotalText{ margin:-6px 0 16px; font-size:.78rem; color:var(--fg-muted); }
+
+  .chartView[hidden]{ display:none; }
+  .donutWrap{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .donutOuter{ position:relative; width:172px; height:172px; flex:none; }
+  .donut{ width:100%; height:100%; border-radius:50%; box-shadow:inset 0 0 0 1px var(--border); }
+  .donutCenter{
+    position:absolute; inset:30px; border-radius:50%; background:var(--panel);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow:inset 0 0 0 1px var(--border);
+  }
+  .donutCenter span{ font-family:'Fraunces',serif; font-size:1.5rem; font-weight:700; color:var(--fg); line-height:1; }
+  .donutCenter small{ font-size:.6rem; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+  .donutLegend{
+    list-style:none; margin:0; padding:0; width:100%;
+    display:grid; grid-template-columns:1fr 1fr; gap:5px 12px;
+  }
+  .donutLegend li{ display:flex; align-items:center; gap:6px; font-size:.72rem; color:var(--fg); }
+  .donutLegend li .sw{ width:9px; height:9px; border-radius:50%; flex:none; }
+  .donutLegend li .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .donutLegend li .pc{ color:var(--fg-muted); font-variant-numeric:tabular-nums; font-size:.68rem; flex:none; }
+
+  .statsBars{ display:flex; flex-direction:column; gap:7px; }
+  .statsBarRow{ display:flex; align-items:center; gap:8px; font-size:.78rem; }
+  .statsBarRow .lbl{ width:108px; flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .statsBarRow .track{ flex:1; background:var(--panel-2); border-radius:5px; height:10px; overflow:hidden; border:1px solid var(--border); }
+  .statsBarRow .fill{ display:block; height:100%; border-radius:5px 0 0 5px; }
+  .statsBarRow .n{ width:30px; flex:none; text-align:right; color:var(--fg-muted); font-size:.72rem; font-variant-numeric:tabular-nums; }
+
   /* ---- Popup ---- */
   .leaflet-popup-content-wrapper{
     background:var(--panel); color:var(--fg); border-radius:12px; border:1px solid var(--border);
@@ -142,9 +255,9 @@
   .pop .head .dot svg{ width:20px; height:20px; }
   .pop .head .cat{ font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--fg-muted); }
   .pop .head .rel{ font-family:'Fraunces',serif; font-size:1.02rem; font-weight:600; line-height:1.15; }
-  .pop .loc{ font-size:.78rem; color:var(--accent-2); margin-bottom:6px; }
+  .pop .loc{ font-size:.78rem; color:var(--accent); font-weight:600; margin-bottom:6px; }
   .pop .obs{ font-size:.68rem; color:var(--fg-muted); font-style:italic; margin:-4px 0 6px; }
-  .pop .trecho{ font-size:.78rem; line-height:1.45; color:#D9D2C2; margin-bottom:10px;
+  .pop .trecho{ font-size:.78rem; line-height:1.45; color:var(--fg); opacity:.85; margin-bottom:10px;
     max-height:120px; overflow-y:auto; padding-right:2px; }
   .pop a.watch{
     display:flex; align-items:center; justify-content:center; gap:7px; background:var(--accent); color:#1A1208;
@@ -186,7 +299,7 @@
 
   #loading{
     position:fixed; inset:0; z-index:2000;
-    background:radial-gradient(circle at 50% 42%, #16241E, var(--bg) 72%);
+    background:radial-gradient(circle at 50% 42%, #FFFFFF, var(--bg) 72%);
     color:var(--fg-muted);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
     font-size:.85rem; transition:opacity .5s ease;
@@ -226,6 +339,17 @@
     .catRow .dot{ width:17px; height:17px; }
     .catRow .dot svg{ width:12px; height:12px; }
     #panelFoot{ padding:7px 12px 9px; }
+
+    #statsFloatBtn{ width:40px; height:40px; }
+    #statsFloatBtn svg{ width:19px; height:19px; }
+
+    .statsModal{ padding:18px 16px 16px; }
+    .statsModal h2{ font-size:1.05rem; }
+    .donutOuter{ width:148px; height:148px; }
+    .donutCenter{ inset:26px; }
+    .donutCenter span{ font-size:1.3rem; }
+    .statsList .name{ width:96px; font-size:.78rem; }
+    .statsBarRow .lbl{ width:80px; font-size:.73rem; }
   }
 </style>
 </head>
@@ -236,6 +360,11 @@
 <div id="map"></div>
 
 <div id="topbar">
+  <button id="statsFloatBtn" type="button" aria-label="Ver estatísticas do mapa" title="Estatísticas" disabled>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20V10M12 20V4M20 20v-7"/>
+    </svg>
+  </button>
   <div id="searchWrap">
     <input id="search" type="text" placeholder="Busca lugar, criatura ou palavra">
   </div>
@@ -245,7 +374,7 @@
   <button id="panelHeader" aria-expanded="true" aria-controls="panelBody">
     <span class="glyph">🌙</span>
     <div class="titleBlock">
-      <h1>Mapa de Arrepiar <span class="ver">v9.5</span></h1>
+      <h1>Mapa de Arrepiar <span class="ver">v9.9</span></h1>
       <p>Canal Belém de Arrepiar</p>
     </div>
   </button>
@@ -265,6 +394,84 @@
         <button class="linkBtn" id="selNone">Desmarcar todas</button>
       </div>
       <div id="legend"></div>
+    </div>
+  </div>
+</div>
+
+<div id="statsOverlay" class="statsOverlay" hidden>
+  <div class="statsModal" role="dialog" aria-modal="true" aria-labelledby="statsTitle">
+    <button class="statsClose" id="statsClose" type="button" aria-label="Fechar estatísticas">✕</button>
+
+    <div id="statsGlobalView" class="statsPage">
+      <h2 id="statsTitle">📊 Estatísticas do Mapa de Arrepiar</h2>
+
+      <section class="statsSection">
+        <h3>Lugares com mais relatos</h3>
+        <ol class="statsList" id="statsLocais"></ol>
+        <button class="moreBtn" id="statsMoreBtn" type="button" hidden>+ Ver mais lugares</button>
+      </section>
+
+      <section class="statsSection">
+        <div class="statsSecHead">
+          <h3>Relatos por categoria</h3>
+          <div class="chartToggle" role="tablist">
+            <button type="button" class="toggleBtn active" id="toggleDonut" data-view="donut">Rosca</button>
+            <button type="button" class="toggleBtn" id="toggleBars" data-view="bars">Barras</button>
+          </div>
+        </div>
+        <div id="statsDonutView" class="chartView">
+          <div class="donutWrap">
+            <div class="donutOuter">
+              <div id="statsDonut" class="donut"></div>
+              <div class="donutCenter"><span id="donutTotal">0</span><small>relatos</small></div>
+            </div>
+            <ul class="donutLegend" id="statsDonutLegend"></ul>
+          </div>
+        </div>
+        <div id="statsBarsView" class="chartView" hidden>
+          <div class="statsBars" id="statsCats"></div>
+        </div>
+      </section>
+    </div>
+
+    <div id="statsLocalView" class="statsPage" hidden>
+      <button class="backBtn" id="statsBackBtn" type="button">← Voltar</button>
+      <h2 id="localTitle">📍 Local</h2>
+      <p id="localTotal" class="localTotalText"></p>
+
+      <section class="statsSection">
+        <div class="statsSecHead">
+          <h3>Categorias neste lugar</h3>
+          <div class="chartToggle" role="tablist">
+            <button type="button" class="toggleBtn active" id="localToggleDonut" data-view="donut">Rosca</button>
+            <button type="button" class="toggleBtn" id="localToggleBars" data-view="bars">Barras</button>
+          </div>
+        </div>
+        <div id="localDonutView" class="chartView">
+          <div class="donutWrap">
+            <div class="donutOuter">
+              <div id="localDonut" class="donut"></div>
+              <div class="donutCenter"><span id="localDonutTotal">0</span><small>relatos</small></div>
+            </div>
+            <ul class="donutLegend" id="localDonutLegend"></ul>
+          </div>
+        </div>
+        <div id="localBarsView" class="chartView" hidden>
+          <div class="statsBars" id="localCats"></div>
+        </div>
+      </section>
+    </div>
+
+    <div id="statsCategoryView" class="statsPage" hidden>
+      <button class="backBtn" id="statsCatBackBtn" type="button">← Voltar</button>
+      <h2><span class="catDot" id="catViewDot"></span><span id="catViewName">Categoria</span></h2>
+      <p id="catViewTotal" class="localTotalText"></p>
+
+      <section class="statsSection">
+        <h3>Locais com mais avistamentos</h3>
+        <ol class="statsList" id="catLocais"></ol>
+        <button class="moreBtn" id="catMoreBtn" type="button" hidden>+ Ver mais lugares</button>
+      </section>
     </div>
   </div>
 </div>
@@ -407,6 +614,171 @@ function buildCatPanel(){
     `<span><i style="background:${g[2]}"></i>${esc(g[1])}</span>`).join('');
 }
 
+const RANK_MEDALS = ['🥇','🥈','🥉'];
+const LOCAIS_PREVIEW = 10;
+
+// paleta própria das estatísticas: cores vivas e bem diferentes entre si,
+// independente das cores dos ícones do mapa (que se repetem por grupo).
+const STATS_COLORS = {
+  "Fantasma":"#A54D27","Lobisomem":"#23C784","OVNI":"#AD2DBE","Matinta":"#94AD1F",
+  "Curupira":"#2D7ABE","Iara":"#C7234B","Luz misteriosa":"#27A52D","Morcegão":"#5B23C7",
+  "Criatura não identificada":"#BE892D","Boto":"#1FADA3","Alien":"#BE2D9E","Encantado":"#74C723",
+  "Outros":"#2740A5","Mapinguari":"#C73323","Bruxa":"#2DBE65","Boiúna":"#7F1FAD",
+  "Vampiro":"#BEB92D","Reptiliano":"#239DC7","Ataíde":"#A5275F","Chupa-cabra":"#3DC723",
+  "Caipora":"#402DBE","Saci":"#AD5C1F","Boitatá":"#2DBE95","Fulozinha":"#C723C6","Vira-porco":"#7FA527"
+};
+
+// renderizador genérico de "ranking de lugares" (usado na lista geral e na lista por categoria),
+// cada um com seu próprio estado de expandir/recolher e com os nomes virando links clicáveis
+function createRankingRenderer(listEl, moreBtnEl, onClickName){
+  let data = [];
+  let expanded = false;
+  function render(){
+    const rows = expanded ? data : data.slice(0, LOCAIS_PREVIEW);
+    const maxV = data.length ? data[0][1] : 1;
+    listEl.innerHTML = rows.length
+      ? rows.map(([nome,n],i)=>{
+          const pct = Math.round((n/maxV)*100);
+          const rank = RANK_MEDALS[i] || `${i+1}.`;
+          return `<li><span class="rank">${rank}</span>
+            <button type="button" class="name" data-name="${esc(nome)}" title="Ver estatísticas de ${esc(nome)}">${esc(nome)}</button>
+            <span class="track"><span class="fill" style="width:${pct}%"></span></span>
+            <span class="n">${n}</span></li>`;
+        }).join('')
+      : '<li><span class="name">Sem dados de local.</span></li>';
+    if(!expanded && data.length > LOCAIS_PREVIEW){
+      moreBtnEl.hidden = false;
+      moreBtnEl.textContent = `+ Ver mais lugares (${data.length - LOCAIS_PREVIEW})`;
+    } else {
+      moreBtnEl.hidden = true;
+    }
+  }
+  listEl.addEventListener('click', (ev)=>{
+    const btn = ev.target.closest('button[data-name]');
+    if(btn) onClickName(btn.dataset.name);
+  });
+  moreBtnEl.addEventListener('click', ()=>{ expanded = true; render(); });
+  return { setData(newData){ data = newData; expanded = false; render(); } };
+}
+
+// desenha rosca + legenda + barras a partir de {categoria: contagem}, em qualquer um dos containers do modal;
+// os nomes das categorias (legenda e barras) viram links que abrem o ranking de lugares daquela categoria
+function renderCategoryChart(categCounts, els){
+  const ordered = Object.keys(categCounts).sort((a,b)=> categCounts[b]-categCounts[a]);
+  const total = ordered.reduce((s,c)=> s + categCounts[c], 0) || 1;
+  const maxCat = Math.max(1, ...ordered.map(c=> categCounts[c]));
+
+  let acc = 0;
+  const stops = ordered.map(cat=>{
+    const color = STATS_COLORS[cat] || '#8A8A8A';
+    const n = categCounts[cat];
+    const start = (acc/total)*360;
+    acc += n;
+    const end = (acc/total)*360;
+    return `${color} ${start}deg ${end}deg`;
+  });
+  els.donutEl.style.background = ordered.length ? `conic-gradient(${stops.join(',')})` : 'var(--panel-2)';
+  els.totalEl.textContent = total.toLocaleString('pt-BR');
+
+  els.legendEl.innerHTML = ordered.map(cat=>{
+    const color = STATS_COLORS[cat] || '#8A8A8A';
+    const rotulo = (CAT_META[cat]||{}).rotulo || cat;
+    const n = categCounts[cat];
+    const pct = ((n/total)*100).toFixed(1).replace('.', ',');
+    return `<li><span class="sw" style="background:${color}"></span>
+      <button type="button" class="catLink nm" data-cat="${esc(cat)}" title="Ver locais com mais ${esc(rotulo)}">${esc(rotulo)}</button>
+      <span class="pc">${pct}%</span></li>`;
+  }).join('');
+
+  els.barsEl.innerHTML = ordered.map(cat=>{
+    const color = STATS_COLORS[cat] || '#8A8A8A';
+    const rotulo = (CAT_META[cat]||{}).rotulo || cat;
+    const n = categCounts[cat];
+    const pct = Math.round((n/maxCat)*100);
+    return `<div class="statsBarRow">
+      <button type="button" class="catLink lbl" data-cat="${esc(cat)}" title="Ver locais com mais ${esc(rotulo)}">${esc(rotulo)}</button>
+      <span class="track"><span class="fill" style="width:${pct}%;background:${color}"></span></span>
+      <span class="n">${n}</span>
+    </div>`;
+  }).join('');
+}
+
+const globalRankingRenderer = createRankingRenderer(
+  document.getElementById('statsLocais'), document.getElementById('statsMoreBtn'),
+  (name)=> openLocalStats(name));
+const catRankingRenderer = createRankingRenderer(
+  document.getElementById('catLocais'), document.getElementById('catMoreBtn'),
+  (name)=> openLocalStats(name));
+
+function buildStats(){
+  if(!DATA) return;
+
+  // ---- ranking de locais com mais relatos ----
+  const porLocal = {};
+  DATA.relatos.forEach(r=>{
+    const loc = (r.local||'').trim();
+    if(!loc) return;
+    porLocal[loc] = (porLocal[loc]||0) + 1;
+  });
+  globalRankingRenderer.setData(Object.entries(porLocal).sort((a,b)=>b[1]-a[1]));
+
+  // ---- distribuição geral por categoria ----
+  const counts = {};
+  CAT_ORDER.forEach(cat=>{
+    const n = (markersByCat[cat]||[]).length;
+    if(n>0) counts[cat] = n;
+  });
+  renderCategoryChart(counts, {
+    donutEl: document.getElementById('statsDonut'),
+    totalEl: document.getElementById('donutTotal'),
+    legendEl: document.getElementById('statsDonutLegend'),
+    barsEl: document.getElementById('statsCats'),
+  });
+}
+
+function openLocalStats(localName){
+  const relatosLocal = DATA.relatos.filter(r => (r.local||'').trim() === localName);
+  const counts = {};
+  relatosLocal.forEach(r=>{ counts[r.categoria] = (counts[r.categoria]||0) + 1; });
+
+  document.getElementById('localTitle').textContent = `📍 ${localName}`;
+  const n = relatosLocal.length;
+  document.getElementById('localTotal').textContent =
+    `${n.toLocaleString('pt-BR')} relato${n===1?'':'s'} registrado${n===1?'':'s'} neste lugar`;
+
+  renderCategoryChart(counts, {
+    donutEl: document.getElementById('localDonut'),
+    totalEl: document.getElementById('localDonutTotal'),
+    legendEl: document.getElementById('localDonutLegend'),
+    barsEl: document.getElementById('localCats'),
+  });
+
+  setLocalChartView('donut');
+  goToStatsPage('statsLocalView');
+}
+
+function openCategoryStats(catKey){
+  const relatosCat = DATA.relatos.filter(r => r.categoria === catKey);
+  const porLocal = {};
+  relatosCat.forEach(r=>{
+    const loc = (r.local||'').trim();
+    if(!loc) return;
+    porLocal[loc] = (porLocal[loc]||0) + 1;
+  });
+  const ranking = Object.entries(porLocal).sort((a,b)=>b[1]-a[1]);
+  const rotulo = (CAT_META[catKey]||{}).rotulo || catKey;
+  const color = STATS_COLORS[catKey] || '#8A8A8A';
+
+  document.getElementById('catViewDot').style.background = color;
+  document.getElementById('catViewName').textContent = rotulo;
+  const n = relatosCat.length;
+  document.getElementById('catViewTotal').textContent =
+    `${n.toLocaleString('pt-BR')} relato${n===1?'':'s'} de ${rotulo} no total, em ${ranking.length} lugar${ranking.length===1?'':'es'}`;
+
+  catRankingRenderer.setData(ranking);
+  goToStatsPage('statsCategoryView');
+}
+
 function activeCats(){
   return Array.from(document.querySelectorAll('#catList input:checked')).map(el=>el.dataset.cat);
 }
@@ -457,6 +829,7 @@ fetch('./relatos.json')
     document.getElementById('selNone').addEventListener('click', ()=>{
       document.querySelectorAll('#catList input').forEach(el=>el.checked=false); refresh();
     });
+    document.getElementById('statsFloatBtn').disabled = false;
     refresh();
     document.getElementById('loading').style.opacity='0';
     setTimeout(()=> document.getElementById('loading').style.display='none', 400);
@@ -506,6 +879,72 @@ pinBtn.addEventListener('click', (ev)=>{
 map.on('click', ()=>{
   if(!pinned && !panelEl.classList.contains('collapsed')) applyPanelState(true);
 });
+
+// ---- modal de estatísticas ----
+const statsFloatBtn = document.getElementById('statsFloatBtn');
+const statsOverlay = document.getElementById('statsOverlay');
+const statsClose = document.getElementById('statsClose');
+
+function wireChartToggle(donutBtn, barsBtn, donutView, barsView){
+  function set(view){
+    const showDonut = view === 'donut';
+    donutView.hidden = !showDonut;
+    barsView.hidden = showDonut;
+    donutBtn.classList.toggle('active', showDonut);
+    barsBtn.classList.toggle('active', !showDonut);
+  }
+  donutBtn.addEventListener('click', ()=> set('donut'));
+  barsBtn.addEventListener('click', ()=> set('bars'));
+  return set;
+}
+const setGlobalChartView = wireChartToggle(
+  document.getElementById('toggleDonut'), document.getElementById('toggleBars'),
+  document.getElementById('statsDonutView'), document.getElementById('statsBarsView'));
+const setLocalChartView = wireChartToggle(
+  document.getElementById('localToggleDonut'), document.getElementById('localToggleBars'),
+  document.getElementById('localDonutView'), document.getElementById('localBarsView'));
+
+// navegação entre as "páginas" do modal (geral / por lugar / por categoria), com pilha de "voltar"
+const STATS_PAGES = ['statsGlobalView', 'statsLocalView', 'statsCategoryView'];
+let statsPageStack = [];
+
+function currentStatsPage(){
+  return STATS_PAGES.find(id => !document.getElementById(id).hidden) || 'statsGlobalView';
+}
+function showStatsPage(pageId){
+  STATS_PAGES.forEach(id=> document.getElementById(id).hidden = (id !== pageId));
+}
+function goToStatsPage(pageId){
+  statsPageStack.push(currentStatsPage());
+  showStatsPage(pageId);
+}
+function goBackStatsPage(){
+  showStatsPage(statsPageStack.pop() || 'statsGlobalView');
+}
+
+function openStats(){
+  statsPageStack = [];
+  showStatsPage('statsGlobalView');
+  buildStats();
+  setGlobalChartView('donut');
+  statsOverlay.hidden = false;
+}
+function closeStats(){
+  statsOverlay.hidden = true;
+}
+statsFloatBtn.addEventListener('click', openStats);
+statsClose.addEventListener('click', closeStats);
+statsOverlay.addEventListener('click', (ev)=>{
+  const catBtn = ev.target.closest('.catLink[data-cat]');
+  if(catBtn){ openCategoryStats(catBtn.dataset.cat); return; }
+  if(ev.target === statsOverlay) closeStats();
+});
+document.addEventListener('keydown', (ev)=>{
+  if(ev.key === 'Escape' && !statsOverlay.hidden) closeStats();
+});
+
+document.getElementById('statsBackBtn').addEventListener('click', goBackStatsPage);
+document.getElementById('statsCatBackBtn').addEventListener('click', goBackStatsPage);
 </script>
 </body>
 </html>
